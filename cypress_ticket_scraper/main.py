@@ -6,6 +6,8 @@ import json
 from pytz import timezone
 import requests
 
+from cypress_ticket_scraper.util import season_year
+
 
 class Duration(Enum):
     FULL_DAY = 3969
@@ -26,38 +28,29 @@ REQ_DATE_FMT = r"%Y-%m-%dT00:00:00.000Z"
 FILE_DATE_FMT = r"%Y-%m-%d_%H-%M-%S"
 
 
-def nearest_year(dt: datetime) -> datetime:
-    midpoint = dt.replace(
-        month=7,day=1,
-        hour=0, minute=0, second=0,
-        microsecond=0
-    )
-    if dt < midpoint:
-        target_year = dt.year
-    else:
-        target_year = dt.year + 1
-    return dt.replace(
-        year=target_year, month=1, day=1,
-        hour=0, minute=0, second=0,
-        microsecond=0
-    )
-
-
 def main():
     now = datetime.now(tz=TZ)
     now_str = datetime.strftime(now, FILE_DATE_FMT)
+
+    try:
+        season_year(now)
+    except ValueError as e:
+        print(e)
+        print(e.args)
+        return
+
     today = now.replace(
         hour=0, minute=0, second=0, microsecond=0
     )
     today_str = datetime.strftime(today, REQ_DATE_FMT)
+    print(f"Today is {today_str}")
 
     # Idk Cypress site seems to always use this as the end date
-    end_date = nearest_year(today).replace(
+    end_date = season_year(today).replace(
         month=10, day=30
     )
     end_date_str = datetime.strftime(end_date, REQ_DATE_FMT)
 
-    print(f"Today is {today_str}")
     for duration, age in itertools.product(Duration, Age):
         print(f"Fetching price data for {duration}, {age}")
 
