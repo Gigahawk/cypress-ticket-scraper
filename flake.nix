@@ -88,6 +88,7 @@
                 User = defaultUser;
                 Group = defaultGroup;
                 ExecStart = "${pkgs.writers.writeBash "cypress-ticket-scraper-run" ''
+                  mkdir -p ${cfg.dataDir}
                   cd ${cfg.dataDir}
                   ${self.packages.${pkgs.system}.cypress-ticket-scraper}/bin/cypress-ticket-scraper
                 ''}";
