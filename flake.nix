@@ -54,7 +54,7 @@
       }:
         with lib; let
           cfg = config.services.cypress-ticket-scraper;
-          defaultUser = "cypress-ticket-scraper";
+          defaultUser = "cypress_ticket_scraper";
           defaultGroup = defaultUser;
         in {
           options.services.cypress-ticket-scraper = {
@@ -77,6 +77,19 @@
           };
 
           config = mkIf cfg.enable {
+            users.users.${defaultUser} = {
+              group = defaultGroup;
+              # Is this important?
+              #uid = config.ids.uids.inventree;
+              # Seems to be required with no uid set
+              isSystemUser = true;
+              description = "cypress-ticket-scraper user";
+            };
+
+            users.groups.${defaultGroup} = {
+              # Is this important?
+              #gid = config.ids.gids.inventree;
+            };
             systemd.services.cypress-ticket-scraper = {
               description = "Cypress Mountain ticket price scraper";
               startLimitIntervalSec = 300;
