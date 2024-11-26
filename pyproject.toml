@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "cypress-ticket-scraper"
+version = "0.1.0"
+description = ""
+authors = ["Jasper Chan <jasperchan515@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.scripts]
+cypress-ticket-scraper = "cypress_ticket_scraper.main:main"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+requests = "^2.32.3"
+pytz = "^2024.2"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
