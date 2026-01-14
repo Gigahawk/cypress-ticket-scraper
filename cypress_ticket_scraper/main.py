@@ -51,6 +51,7 @@ def main():
     )
     end_date_str = datetime.strftime(end_date, REQ_DATE_FMT)
 
+    all_ok = True
     for duration, age in itertools.product(Duration, Age):
         print(f"Fetching price data for {duration}, {age}")
 
@@ -73,6 +74,8 @@ def main():
             "https://shop.cypressmountain.com/api/v1/product-variant",
             headers={
                 "Content-Type": "application/json",
+                # Valid user agent is required now I guess to deter scrapers
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.10 Safari/605.1.1"
             },
             data=json.dumps(request_data)
         )
@@ -83,7 +86,9 @@ def main():
         else:
             print(f"Response not OK: {resp.status_code}")
             print(resp.text)
-            return
+            all_ok = False
+    if not all_ok:
+        raise RuntimeError("Errors detected when fetching prices")
 
 
 
