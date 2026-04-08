@@ -158,5 +158,81 @@
           };
         };
       }
-    );
+    )
+    // {
+      nixosModule =
+        {
+          lib,
+          pkgs,
+          config,
+          ...
+        }:
+        with lib;
+        let
+          cfg = config.services.cypress-ticket-scraper;
+          defaultUser = "cypress_ticket_scraper";
+          defaultGroup = defaultUser;
+        in
+        {
+          options.services.cypress-ticket-scraper = {
+            enable = mkEnableOption (lib.mdDoc "Scrape ticket price data from Cypress Mountain");
+
+            dataDir = mkOption {
+              type = types.str;
+              description = mdDoc ''
+                Path to store dumped data to
+              '';
+            };
+
+            interval = mkOption {
+              type = types.str;
+              default = "*-*-* 08:00:00";
+              description = lib.mdDoc ''
+                Systemd OnCalendar value for when to do a scrape
+              '';
+            };
+          };
+
+          config = mkIf cfg.enable {
+            users.users.${defaultUser} = {
+              group = defaultGroup;
+              # Is this important?
+              #uid = config.ids.uids.inventree;
+              # Seems to be required with no uid set
+              isSystemUser = true;
+              description = "cypress-ticket-scraper user";
+            };
+
+            users.groups.${defaultGroup} = {
+              # Is this important?
+              #gid = config.ids.gids.inventree;
+            };
+            systemd.services.cypress-ticket-scraper = {
+              description = "Cypress Mountain ticket price scraper";
+              startLimitIntervalSec = 300;
+              startLimitBurst = 5;
+              serviceConfig = {
+                Type = "oneshot";
+                RestartSec = 60;
+                Restart = "on-failure";
+                User = defaultUser;
+                Group = defaultGroup;
+                ExecStart = "${pkgs.writers.writeBash "cypress-ticket-scraper-run" ''
+                  mkdir -p ${cfg.dataDir}
+                  cd ${cfg.dataDir}
+                  ${
+                    self.packages.${pkgs.stdenv.hostPlatform.system}.cypress-ticket-scraper
+                  }/bin/cypress-ticket-scraper
+                ''}";
+              };
+            };
+            systemd.timers.cypress-ticket-scraper = {
+              wantedBy = [ "timers.target" ];
+              partOf = [ "cypress-ticket-scraper.service" ];
+              # TODO: can we use two values here to make it fire during the season?
+              timerConfig.OnCalendar = [ cfg.interval ];
+            };
+          };
+        };
+    };
 }
