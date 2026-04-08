@@ -39,32 +39,22 @@ def main():
         print(e.args)
         return
 
-    today = now.replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_str = datetime.strftime(today, REQ_DATE_FMT)
     print(f"Today is {today_str}")
 
     # Idk Cypress site seems to always use this as the end date
-    end_date = season_year(today).replace(
-        month=10, day=30
-    )
+    end_date = season_year(today).replace(month=10, day=30)
     end_date_str = datetime.strftime(end_date, REQ_DATE_FMT)
 
     all_ok = True
     for duration, age in itertools.product(Duration, Age):
         print(f"Fetching price data for {duration}, {age}")
 
-        fname = (
-            f"{now_str}_cypress_tickets_"
-            f"{duration.name}_{age.name}.json"
-        )
+        fname = f"{now_str}_cypress_tickets_{duration.name}_{age.name}.json"
 
         request_data = {
-            "ProductAttributeValueIds": [
-                duration.value,
-                age.value
-            ],
+            "ProductAttributeValueIds": [duration.value, age.value],
             "ProductId": 214,
             "StartDate": today_str,
             "EndDate": end_date_str,
@@ -75,9 +65,9 @@ def main():
             headers={
                 "Content-Type": "application/json",
                 # Valid user agent is required now I guess to deter scrapers
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.10 Safari/605.1.1"
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.10 Safari/605.1.1",
             },
-            data=json.dumps(request_data)
+            data=json.dumps(request_data),
         )
         if resp.ok:
             print(f"Response OK, saving to {fname}")
@@ -89,7 +79,6 @@ def main():
             all_ok = False
     if not all_ok:
         raise RuntimeError("Errors detected when fetching prices")
-
 
 
 if __name__ == "__main__":
